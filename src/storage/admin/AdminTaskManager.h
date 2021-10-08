@@ -77,6 +77,7 @@ class AdminTaskManager {
   std::unique_ptr<std::thread> unreportedAdminThread_;
   std::mutex unreportedMutex_;
   std::condition_variable unreportedCV_;
+  std::atomic<bool> stopped_ = false;
 };
 
 }  // namespace storage

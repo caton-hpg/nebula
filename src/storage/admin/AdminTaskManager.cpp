@@ -45,6 +45,7 @@ void AdminTaskManager::handleUnreportedTasks() {
     while (true) {
       std::unique_lock<std::mutex> lk(unreportedMutex_);
       if (!ifAny) unreportedCV_.wait(lk);
+      if (stopped_.load(std::memory_order_acquire)) break;
       ifAny = false;
       std::unique_ptr<kvstore::KVIterator> iter;
       auto kvRet = env_->adminStore_->scan(&iter);
@@ -177,6 +178,9 @@ void AdminTaskManager::shutdown() {
   }
 
   pool_->join();
+  stopped_.store(true, std::memory_order_release);
+  notifyReporting();
+  unreportedAdminThread_->join();
   LOG(INFO) << "exit AdminTaskManager::shutdown()";
 }
 
